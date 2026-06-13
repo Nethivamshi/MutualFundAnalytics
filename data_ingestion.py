@@ -1,28 +1,50 @@
+"""
+Module: data_ingestion.py
+Description: Loads all raw mutual fund CSV datasets into
+             the SQLite database using SQLAlchemy.
+Author: Nethi Vamshi
+Project: Bluestock Fintech - Mutual Fund Analytics Capstone
+Date: June 2026
+"""
+
 import pandas as pd
+import sqlite3
+import os
 
-files = [
-    "01_fund_master.csv",
-    "02_nav_history.csv",
-    "03_aum_by_fund_house.csv",
-    "04_monthly_sip_inflows.csv",
-    "05_category_inflows.csv",
-    "06_industry_folio_count.csv",
-    "07_scheme_performance.csv",
-    "08_investor_transactions.csv",
-    "09_portfolio_holdings.csv",
-    "10_benchmark_indices.csv"
 
-]
+def ingest_all_data():
+    """
+    Load all cleaned CSV files into the SQLite database.
 
-for file in files:
-    try:
-        df = pd.read_csv(f"data/raw/{file}")
+    Reads from:
+        data/processed/ folder
 
-        print("\n" + "="*50)
-        print("Dataset:", file)
-        print("Shape:", df.shape)
-        print(df.head())
-        print(df.dtypes)
+    Loads into:
+        bluestock_mf.db SQLite database
 
-    except Exception as e:
-        print(file, e)
+    Returns:
+        None
+    """
+    conn = sqlite3.connect("bluestock_mf.db")
+
+    csv_table_map = {
+        "data/processed/02_nav_history_clean.csv":          "nav_history",
+        "data/processed/investor_transactions_clean.csv":   "investor_transactions",
+        "data/processed/scheme_performance_clean.csv":      "scheme_performance",
+    }
+
+    for csv_path, table_name in csv_table_map.items():
+        if os.path.exists(csv_path):
+            df = pd.read_csv(csv_path)
+            df.to_sql(table_name, conn,
+                      if_exists="replace", index=False)
+            print(f"✅ Loaded {table_name}")
+        else:
+            print(f"⚠️  File not found: {csv_path}")
+
+    conn.close()
+    print("✅ data_ingestion.py — All data loaded successfully")
+
+
+if __name__ == "__main__":
+    ingest_all_data()
