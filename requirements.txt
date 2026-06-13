@@ -1,1 +1,6 @@
-requirements.txt
+pandas
+numpy
+matplotlib
+seaborn
+jupyter
+tableau-api-lib
